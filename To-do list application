@@ -1,0 +1,126 @@
+import json
+import os
+from datetime import datetime
+
+FILE_NAME = "todo_list.json"
+PRIORITY_LEVELS = ['Low', 'Medium', 'High']
+
+def load_tasks():
+    if os.path.exists(FILE_NAME):
+        with open(FILE_NAME, 'r') as f:
+            return json.load(f)
+    return []
+
+def save_tasks(tasks):
+    with open(FILE_NAME, 'w') as f:
+        json.dump(tasks, f, indent=4)
+
+def show_tasks(tasks, sort_key=None):
+    if not tasks:
+        print("No tasks found.")
+        return
+
+    if sort_key:
+        tasks = sorted(tasks, key=lambda x: x.get(sort_key, ''))
+
+    for i, task in enumerate(tasks, 1):
+        status = "✓" if task['done'] else "✗"
+        print(f"{i}. [{status}] {task['task']} | Due: {task['due_date']} | Priority: {task['priority']} | Category: {task['category']}")
+
+def add_task(tasks):
+    task = input("Enter task: ")
+    due_date = input("Enter due date (YYYY-MM-DD): ")
+    priority = input(f"Enter priority {PRIORITY_LEVELS}: ").capitalize()
+    category = input("Enter category (e.g. Work, Personal): ")
+
+    if priority not in PRIORITY_LEVELS:
+        priority = 'Low'
+
+    tasks.append({
+        'task': task,
+        'due_date': due_date,
+        'priority': priority,
+        'category': category,
+        'done': False
+    })
+    print("Task added!")
+
+def update_task(tasks):
+    show_tasks(tasks)
+    index = int(input("Enter task number to update: ")) - 1
+    if 0 <= index < len(tasks):
+        tasks[index]['task'] = input("New task: ")
+        tasks[index]['due_date'] = input("New due date (YYYY-MM-DD): ")
+        priority = input(f"New priority {PRIORITY_LEVELS}: ").capitalize()
+        tasks[index]['priority'] = priority if priority in PRIORITY_LEVELS else 'Low'
+        tasks[index]['category'] = input("New category: ")
+        print("Task updated!")
+
+def mark_done(tasks):
+    show_tasks(tasks)
+    index = int(input("Enter task number to mark done: ")) - 1
+    if 0 <= index < len(tasks):
+        tasks[index]['done'] = True
+        print("Task marked as done!")
+
+def delete_task(tasks):
+    show_tasks(tasks)
+    index = int(input("Enter task number to delete: ")) - 1
+    if 0 <= index < len(tasks):
+        tasks.pop(index)
+        print("Task deleted!")
+
+def search_tasks(tasks):
+    keyword = input("Enter keyword to search: ").lower()
+    filtered = [task for task in tasks if keyword in task['task'].lower()]
+    show_tasks(filtered)
+
+def filter_by_category(tasks):
+    category = input("Enter category to filter: ").lower()
+    filtered = [task for task in tasks if task['category'].lower() == category]
+    show_tasks(filtered)
+
+def main():
+    tasks = load_tasks()
+    while True:
+        print("\nTo-Do List Menu:")
+        print("1. Show All Tasks")
+        print("2. Add Task")
+        print("3. Update Task")
+        print("4. Mark Task as Done")
+        print("5. Delete Task")
+        print("6. Search Tasks")
+        print("7. Filter by Category")
+        print("8. Sort by Priority")
+        print("9. Sort by Due Date")
+        print("10. Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            show_tasks(tasks)
+        elif choice == '2':
+            add_task(tasks)
+        elif choice == '3':
+            update_task(tasks)
+        elif choice == '4':
+            mark_done(tasks)
+        elif choice == '5':
+            delete_task(tasks)
+        elif choice == '6':
+            search_tasks(tasks)
+        elif choice == '7':
+            filter_by_category(tasks)
+        elif choice == '8':
+            show_tasks(tasks, sort_key='priority')
+        elif choice == '9':
+            show_tasks(tasks, sort_key='due_date')
+        elif choice == '10':
+            save_tasks(tasks)
+            print("Goodbye!")
+            break
+        else:
+            print("Invalid choice. Try again.")
+
+if __name__ == "__main__":
+    main()
